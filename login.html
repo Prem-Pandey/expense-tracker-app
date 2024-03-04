@@ -60,6 +60,7 @@ button {
             <a href="/signUp.html">New user? signup here</a>
         </form>
     </div>
+    
     <div id="expense-container" style="display: none;">
         <h2>Add Expense</h2>
         <form id="expenseForm">
@@ -72,20 +73,27 @@ button {
           <label for="category">Category:</label>
           <select id="category" name="category" required>
             <option value="Food">Food</option>
-            <option value="Petrol">Petrol</option>
+            <option value="Fuel">Fuel</option>
             <option value="Salary">Salary</option>
+            <option value="Travel">Travel</option>
+            <option value="Cloths">Cloths</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Others">Others</option>
             <!-- Add more options as needed -->
           </select>
     
           <button type="button" onclick="addExpense()">Add Expense</button>
         </form>
-    
+        <button id="rzp-btn" type="button" onclick="premium()">Get Premium Membership</button>
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <h2>Expense History</h2>
         <ul id="expenseList"></ul>
       </div>
     
 </body>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsonwebtoken@8/dist/jsonwebtoken.min.js"></script>
+
 <script>
     // your_script.js
 async function login() {
@@ -286,6 +294,81 @@ async function deleteExpense(expenseId) {
     fetchExpenses();
   } catch (error) {
     console.error('Error deleting expense:', error);
+  }
+}
+
+// async function premium(e){
+//   const token = localStorage.getItem('token')
+//   console.log("token is:"+token);
+//   alert("clicking on premium memeber btn")
+//   const response = await axios.get('http://localhost:3000/premiummembership')
+//   console.log(response)
+//   var options ={
+//     "key" : response.data.key.id,
+//     "order_id" : response.data.order_id,
+//     "handler" : async function (response){
+//       await axios.post('http://localhost:3000/updatetransactionststus',{
+//         order_id : options.order_id,
+//         payment_id : response.razorpay_payment_id,
+//       }, {headers: {"Authorization":token}})
+//       alert("you are a premium member now")
+//     }
+//   }
+//   // Initialize Razorpay checkout
+//     const rzp = new Razorpay(options);
+//     rzp.open();
+    
+//   } catch (error) {
+//     console.error("Error in premium function:", error);
+//     alert("An error occurred while processing premium membership request.");
+//   }
+// }
+
+
+async function premium(e) {
+  try {
+    const token = localStorage.getItem('token');
+    console.log("token is:", token);
+    
+
+// Inspect the payload
+
+    if (!token) {
+      throw new Error("Authentication token not found. Please log in.");
+    }
+    
+    
+    const response = await axios.post('http://localhost:3000/premiummembership', {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    console.log("Response from premiummembership endpoint:", response);
+    console.log("Response data:", response.data);
+    const options = {
+      "key": response.data.key_id,
+      // "amount": 2500, // Amount in paise (Example: 2500 paise = ₹25.00)
+      // "currency": "INR",
+      "order_id": response.data.order.orderId,
+      "handler": async function (response) {
+        // This function will be called when payment is successful
+        await axios.post('http://localhost:3000/updatetransactionstatus', {
+          order_id: options.order_id,
+          payment_id: response.razorpay_payment_id,
+        }, {
+          headers: {"Authorization": `Bearer ${token}`}
+        });
+        console.log("you are a premium mumber now")
+        alert("You are now a premium member!");
+      }
+    };
+
+    // Initialize Razorpay checkout
+    const rzp = new Razorpay(options);
+    rzp.open();
+    
+  } catch (error) {
+    console.error("Error in premium function:", error.response ? error.response.data : error);
+    alert("An error occurred while processing premium membership request. Please check console for details.");
   }
 }
 

@@ -1,8 +1,9 @@
 const express = require('express');
 const path = require('path');
+const authMiddleware = require('../authMiddleware');
 const router = express.Router();
 
-module.exports = (UserController, ExpenseController) => {
+module.exports = (UserController, ExpenseController, Purchase) => {
   // User routes
   router.get('/signup', (req, res) => {
     // Render signup view
@@ -14,7 +15,7 @@ module.exports = (UserController, ExpenseController) => {
   router.get('/login', (req, res) => {
     // Render login view
     console.log('login route')
-  res.sendFile(path.join(__dirname, '../login.html'));
+    res.sendFile(path.join(__dirname, '../login.html'));
   });
 
   router.post('/login', UserController.login);
@@ -23,7 +24,10 @@ module.exports = (UserController, ExpenseController) => {
   router.post('/addExpense', ExpenseController.addExpense);
   router.get('/getAllExpenses', ExpenseController.getAllExpenses);
   router.delete('/deleteExpense/:expenseId', ExpenseController.deleteExpense);
-
+  // router.get('/premiummembership',Purchase.purchasepremium);
+  // router.post('/premiummember', Purchase.purchasepremium)
+  router.post('/premiummembership', Purchase.purchasepremium);
+  router.post('/updatetransactionstatus', Purchase.updateTransactionStatus)
   return router;
 };
 
